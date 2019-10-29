@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlogApp.Core.Model
+namespace BlogApp.Core.Contract
 {
     public class PostItem
     {
