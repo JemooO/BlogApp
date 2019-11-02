@@ -1,19 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-namespace BlogApp.Service
+namespace BlogApp.Application
 {
     public class Startup
     {
@@ -28,14 +26,12 @@ namespace BlogApp.Service
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
-            //string connectionString = @"Server=DESKTOP-T22OUSU;Database=BlogApp;Trusted_Connection=true;ConnectRetryCount=0";
             services.AddDbContext<BlogApp.Core.Repository.PostRepository>(options => options.UseSqlServer(Configuration.GetConnectionString("BlogAppDb")));
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "My API", Version = "v1" });
             });
         }
 
@@ -47,7 +43,6 @@ namespace BlogApp.Service
                 app.UseDeveloperExceptionPage();
             }
 
-            //app.UseMvc();
             app.UseRouting();
 
             app.UseAuthorization();

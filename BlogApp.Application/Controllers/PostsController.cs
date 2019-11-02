@@ -7,15 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BlogApp.Core.Data;
 using BlogApp.Core.Repository;
+using Ganss.XSS;
+using StackExchange.Redis;
+using BlogApp.Core.Notification;
 
-namespace BlogApp.Service.Controllers
+namespace BlogApp.Application.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class PostsController : ControllerBase
     {
         private readonly PostRepository _context;
-
+        
+        
         public PostsController(PostRepository context)
         {
             _context = context;
@@ -23,11 +27,14 @@ namespace BlogApp.Service.Controllers
 
         // GET: api/Posts
         [HttpGet]
-        public IEnumerable<Post> GetPosts()
+        public IEnumerable<Post> GetPosts(int? pageNum, int? pageSize)
         {
+            if (pageNum.HasValue && pageSize.HasValue)
+                return _context.Posts.Skip((pageNum.Value - 1) * pageSize.Value).Take(pageSize.Value);
             return _context.Posts;
         }
 
+        
         // GET: api/Posts/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPost([FromRoute] Guid id)
@@ -97,7 +104,7 @@ namespace BlogApp.Service.Controllers
 
         // POST: api/Posts
         [HttpPost]
-        public async Task<IActionResult> PostPost([FromBody] Post post)
+        public async Task<IActionResult> PostPost(Post post)
         {
             post.Id = Guid.NewGuid();
 
@@ -106,9 +113,13 @@ namespace BlogApp.Service.Controllers
                 return BadRequest(ModelState);
             }
 
+
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
+            NotificationManager.Notification.SubmitNotification(string.Format("{0} Write new Post with title {1}", 
+                post.Author, post.Title), string.Format("http://localhost:4000/posts/{0}", post.Id));
+                
             return CreatedAtAction("GetPost", new { id = post.Id }, post);
         }
 
